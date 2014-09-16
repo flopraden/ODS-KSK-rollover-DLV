@@ -24,5 +24,5 @@ Little bash script to automatically sync the KSK rollover in DLV registry
 TODO:
 
     * Test it in real environment
-    * create an auto-ds-seen crontab
+
 
