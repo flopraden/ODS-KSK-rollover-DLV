@@ -20,9 +20,12 @@ Little bash script to automatically sync the KSK rollover in DLV registry
 
   $INCLUDE /Path/to/save/the/DLV/cookie/dlv.$D.dns
 
+* auto-remove-recheck-key:
+  * enum all DNSSEC domain in OpenDNSSEC and remove old KEY from DLV
+  * re-create DLV cookies in DNS and ask for re-check
 
 TODO:
 
-    * Test it in real environment
+    * Test all script in real environment
 
 

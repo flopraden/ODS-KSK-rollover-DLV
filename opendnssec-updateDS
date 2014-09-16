@@ -1,8 +1,5 @@
 #!/bin/bash
 
-set +e
-set +v
-
 # This script receives from STDIN the new KSK for the rollover in the following form : 
 # <zone> <ttl> <class> <type> DNSKEY <flags> <protocol> <algorithm> <public key>
 
