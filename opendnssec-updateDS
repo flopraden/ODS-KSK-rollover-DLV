@@ -29,9 +29,9 @@ PAGETOKEN=`curl -k -c $COOKIE --compressed -i  "https://dlv.isc.org/" -H 'Accept
 AUTH_N=`echo $PAGETOKEN |sed -re 's/.*window._auth_token_name *= *"([^"]+)".*/\1/'`
 AUTH_V=`echo $PAGETOKEN |sed -re 's/.*window._auth_token *= *"([^"]+)".*/\1/'`
 
-echo "$AUTH_N: $AUTH_V" >&2
+#echo "$AUTH_N: $AUTH_V" >&2
 
-echo "$PAGETOKEN" >&2
+#echo "$PAGETOKEN" >&2
 #Encode Auth token for form data
 
 AUTH_N=$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$AUTH_N")
@@ -47,7 +47,7 @@ PAGEHOME=`curl -k -b $COOKIE -c $COOKIE --compressed -i 'https://dlv.isc.org/' -
 
 DLVUID=`echo $PAGEHOME |sed -re 's|.*/users/([0-9]+)/zones.*|\1|'`
 
-echo "UID: $DLVUID" >&2
+#echo "UID: $DLVUID" >&2
 
 # GET ZONE ID
 
@@ -55,7 +55,7 @@ PAGEZONES=`curl -k -b $COOKIE -c $COOKIE --compressed -i "https://dlv.isc.org/us
 
 DLVZID=`echo $PAGEZONES|sed -e 's/<td>/\n/g'|grep $DOMAIN -A 1|grep "/dnskeys/new"|sed -re 's|.*"/zones/([0-9]+)/dnskeys/new".*|\1|'`
 
-echo "ZID for $DOMAIN: $DLVZID" >&2
+#echo "ZID for $DOMAIN: $DLVZID" >&2
 # # ADD KEY
 
 #   # Encode Key
@@ -71,15 +71,15 @@ curl --compressed "https://dlv.isc.org/zones/${DLVZID}/dnskeys" -H 'Host: dlv.is
 
 DLVKEYS=`curl --compressed "https://dlv.isc.org/zones/${DLVZID}" -H 'Host: dlv.isc.org' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' -H 'Accept-Encoding: gzip, deflate' -b $COOKIE 2>/dev/null|tr -d '\n' |sed -re 's|</?tr>|\n|g' |grep '"/dnskeys/' |sed -re 's|.*"/dnskeys/([0-9]+)".*|\1|g'`
 
-echo "DLV Keys: $DLVKEYS" >&2
+#echo "DLV Keys: $DLVKEYS" >&2
 ODSKEY=`ods-ksmutil $EXTRA_ARGS key list --verbose --zone $DOMAIN 2>/dev/null|grep "KSK" |grep -E "^$DOMAIN"|grep -Evi "DEAD|RETIRE"|sed -re 's/.* +([0-9]+)$/\1/g'|tr '\n' '|'`
-echo "ODS Keys: $ODSKEY" >&2
+#echo "ODS Keys: $ODSKEY" >&2
 for K in $DLVKEYS; do 
     TAGID=`curl --compressed "https://dlv.isc.org/dnskeys/$K" -H 'Host: dlv.isc.org' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' -H 'Accept-Encoding: gzip, deflate' -b $COOKIE 2>/dev/null|tr -d '\n' |sed -re 's|</?tr>|\n|g' |grep 'DNSKEY Tag' |sed -re 's|.*<td> *([^ <]+) *</td>.*|\1|g'`
     if echo "${ODSKEY}" |grep -qi "$TAGID|"; then
-	echo "Key ($K/$TAGID) needed" >&2
+	echo "Key ($K/$TAGID) needed" 2>/dev/null >&2 
     else
-	echo "Key not ($K/$TAGID) needed" >&2
+#	echo "Key not ($K/$TAGID) needed" >&2
 	curl --compressed -b $COOKIE "https://dlv.isc.org/dnskeys/$K" -H 'Host: dlv.isc.org' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' -H 'Accept-Encoding: gzip, deflate' -H 'Content-Type: application/x-www-form-urlencoded' --data "_method=delete&${AUTH_N}=${AUTH_V}" 2>/dev/null >/dev/null
     fi;
 done
@@ -89,12 +89,12 @@ done
 
 DLVKEYS=`curl --compressed "https://dlv.isc.org/zones/${DLVZID}" -H 'Host: dlv.isc.org' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' -H 'Accept-Encoding: gzip, deflate' -b $COOKIE 2>/dev/null|tr -d '\n' |sed -re 's|</?tr>|\n|g' |grep '"/dnskeys/' |grep -e '<td> *No *</td>'|sed -re 's|.*"/dnskeys/([0-9]+)".*|\1|g'`
 
-echo "DLV Keys: $DLVKEYS" >&2
+#echo "DLV Keys: $DLVKEYS" >&2
 DLVCOOKIE=";; Automatic generation of DLV COOKIES\n"
 
 for K in $DLVKEYS; do 
     C=`curl --compressed "https://dlv.isc.org/dnskeys/$K" -H 'Host: dlv.isc.org' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' -H 'Accept-Encoding: gzip, deflate' -b $COOKIE 2>/dev/null|tr -d '\n' |sed -re 's|</?tr>|\n|g' |grep 'TXT record value' |sed -re 's|.*<td> *(DLV[^ <]+) *</td>.*|\1|g'`
-    echo "Cookie for $K: $C" >&2
+#    echo "Cookie for $K: $C" >&2
     DLVCOOKIE="$DLVCOOKIE\ndlv.$DOMAIN. 0 IN TXT \"$C\""
 done;
 
@@ -111,7 +111,7 @@ $($ODSSIGNER sign $DOMAIN 2>/dev/null >/dev/null)
 
 # Request recheck
 for K in $DLVKEYS; do 
-    echo "Request recheck for $K" >&2
+#    echo "Request recheck for $K" >&2
     curl -b $COOKIE "https://dlv.isc.org/dnskeys/$K/recheck" -H 'Host: dlv.isc.org' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' -H 'Accept-Encoding: gzip, deflate' -H 'Content-Type: application/x-www-form-urlencoded' --data "_method=put&${AUTH_N}=${AUTH_V}" 2>/dev/null >/dev/null
 done;
 
