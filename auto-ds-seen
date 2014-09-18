@@ -1,6 +1,8 @@
 #!/bin/bash
 
-source .config
+PDLV=/PATH/TO/SCRIPT
+
+source $PDLV/.config
 
 if [[ -n "$CONF" ]]; then
     EXTRA_ARGS="--config $CONF"

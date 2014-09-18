@@ -25,7 +25,9 @@ Little bash script to automatically sync the KSK rollover in DLV registry
   * re-create DLV cookies in DNS and ask for re-check
 
 TODO:
+ * timeout on ods-ksmutil in case on lock 
+   + specially on crontab
+ * put a lock on the crontab to disable execute in case of process already started
 
-    * Test all script in real environment
 
 
